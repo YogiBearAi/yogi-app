@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 
 // Define question types and structure
@@ -19,9 +19,21 @@ interface UserResponse {
 }
 
 interface UserInfo {
-  name: string;
-  email: string;
-  phone: string;
+  firstName: string;
+  lastName: string;
+  age: number;
+  height: {
+    value: number;
+    unit: 'ft' | 'cm';
+  };
+  weight: {
+    value: number;
+    unit: 'lbs' | 'kg';
+  };
+  bodyFat: number;
+  incomeLevel: string;
+  isStudent: boolean;
+  workStatus: string;
 }
 
 // Sample questions for each category
@@ -109,10 +121,28 @@ const questions: Question[] = [
 
 export default function Questionnaire() {
   // State management
-  const [currentStep, setCurrentStep] = useState<'intro' | 'questions' | 'completion'>('intro');
+  const [currentStep, setCurrentStep] = useState<'stats' | 'intro' | 'questions' | 'completion'>('stats');
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [responses, setResponses] = useState<UserResponse[]>([]);
-  const [userInfo, setUserInfo] = useState<UserInfo>({ name: '', email: '', phone: '' });
+  const [userInfo, setUserInfo] = useState<UserInfo>({
+    firstName: '',
+    lastName: '',
+    age: 0,
+    height: { value: 0, unit: 'ft' },
+    weight: { value: 0, unit: 'lbs' },
+    bodyFat: 0,
+    incomeLevel: '',
+    isStudent: false,
+    workStatus: ''
+  });
+  
+  // Add useEffect to handle initial navigation
+  useEffect(() => {
+    // Ensure we're on the client side
+    if (typeof window !== 'undefined') {
+      // You can add any initialization logic here if needed
+    }
+  }, []);
   
   // Calculate progress percentage
   const progressPercentage = Math.round((responses.length / questions.length) * 100);
@@ -163,9 +193,43 @@ export default function Questionnaire() {
   };
   
   // Handle user info changes
-  const handleUserInfoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setUserInfo(prev => ({ ...prev, [name]: value }));
+  const handleUserInfoChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+    const { name, value, type } = e.target;
+    
+    if (type === 'checkbox') {
+      setUserInfo(prev => ({ ...prev, [name]: (e.target as HTMLInputElement).checked }));
+    } else if (name === 'heightUnit' || name === 'weightUnit') {
+      setUserInfo(prev => ({
+        ...prev,
+        [name === 'heightUnit' ? 'height' : 'weight']: {
+          ...prev[name === 'heightUnit' ? 'height' : 'weight'],
+          unit: value as 'ft' | 'cm' | 'lbs' | 'kg'
+        }
+      }));
+    } else if (name === 'heightValue' || name === 'weightValue') {
+      setUserInfo(prev => ({
+        ...prev,
+        [name === 'heightValue' ? 'height' : 'weight']: {
+          ...prev[name === 'heightValue' ? 'height' : 'weight'],
+          value: Number(value)
+        }
+      }));
+    } else {
+      setUserInfo(prev => ({ ...prev, [name]: value }));
+    }
+  };
+  
+  // Check if all required fields are filled
+  const isStatsFormComplete = () => {
+    return (
+      userInfo.firstName.trim() !== '' &&
+      userInfo.lastName.trim() !== '' &&
+      userInfo.age > 0 &&
+      userInfo.height.value > 0 &&
+      userInfo.weight.value > 0 &&
+      userInfo.incomeLevel !== '' &&
+      userInfo.workStatus !== ''
+    );
   };
   
   // Handle final submission
@@ -178,6 +242,222 @@ export default function Questionnaire() {
     // For now, just show an alert
     alert('Thank you for completing the assessment! Your responses have been recorded.');
   };
+  
+  // Render stats form
+  if (currentStep === 'stats') {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100">
+        <div className="bg-white rounded-xl shadow-lg p-8 max-w-2xl w-full mx-4">
+          <h1 className="text-3xl font-bold text-center text-gray-800 mb-4">Your Stats: Let's see where you are at</h1>
+          <p className="text-center text-gray-600 mb-8 italic">
+            "Nothing Counted but Thoroughness and Honesty" - Bill W
+          </p>
+          <p className="text-center text-gray-600 mb-8">
+            We'll collect some basic information to help assess your current standing and provide personalized insights.
+          </p>
+
+          <form className="space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <label htmlFor="firstName" className="block text-sm font-medium text-gray-700 mb-1">
+                  First Name
+                </label>
+                <input
+                  type="text"
+                  id="firstName"
+                  name="firstName"
+                  required
+                  value={userInfo.firstName}
+                  onChange={handleUserInfoChange}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  placeholder="Enter your first name"
+                />
+              </div>
+
+              <div>
+                <label htmlFor="lastName" className="block text-sm font-medium text-gray-700 mb-1">
+                  Last Name
+                </label>
+                <input
+                  type="text"
+                  id="lastName"
+                  name="lastName"
+                  required
+                  value={userInfo.lastName}
+                  onChange={handleUserInfoChange}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  placeholder="Enter your last name"
+                />
+              </div>
+
+              <div>
+                <label htmlFor="age" className="block text-sm font-medium text-gray-700 mb-1">
+                  Age
+                </label>
+                <input
+                  type="number"
+                  id="age"
+                  name="age"
+                  required
+                  min="1"
+                  value={userInfo.age}
+                  onChange={handleUserInfoChange}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  placeholder="Enter your age"
+                />
+              </div>
+
+              <div>
+                <label htmlFor="height" className="block text-sm font-medium text-gray-700 mb-1">
+                  Height
+                </label>
+                <div className="flex gap-2">
+                  <input
+                    type="number"
+                    id="heightValue"
+                    name="heightValue"
+                    required
+                    min="1"
+                    value={userInfo.height.value}
+                    onChange={handleUserInfoChange}
+                    className="flex-1 px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    placeholder="Enter height"
+                  />
+                  <select
+                    id="heightUnit"
+                    name="heightUnit"
+                    value={userInfo.height.unit}
+                    onChange={handleUserInfoChange}
+                    className="w-24 px-2 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  >
+                    <option value="ft">ft</option>
+                    <option value="cm">cm</option>
+                  </select>
+                </div>
+              </div>
+
+              <div>
+                <label htmlFor="weight" className="block text-sm font-medium text-gray-700 mb-1">
+                  Weight
+                </label>
+                <div className="flex gap-2">
+                  <input
+                    type="number"
+                    id="weightValue"
+                    name="weightValue"
+                    required
+                    min="1"
+                    value={userInfo.weight.value}
+                    onChange={handleUserInfoChange}
+                    className="flex-1 px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    placeholder="Enter weight"
+                  />
+                  <select
+                    id="weightUnit"
+                    name="weightUnit"
+                    value={userInfo.weight.unit}
+                    onChange={handleUserInfoChange}
+                    className="w-24 px-2 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  >
+                    <option value="lbs">lbs</option>
+                    <option value="kg">kg</option>
+                  </select>
+                </div>
+              </div>
+
+              <div>
+                <label htmlFor="bodyFat" className="block text-sm font-medium text-gray-700 mb-1">
+                  Estimated Body Fat %
+                </label>
+                <input
+                  type="number"
+                  id="bodyFat"
+                  name="bodyFat"
+                  value={userInfo.bodyFat}
+                  onChange={handleUserInfoChange}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  placeholder="Don't worry if you do not yet know this"
+                />
+              </div>
+
+              <div>
+                <label htmlFor="incomeLevel" className="block text-sm font-medium text-gray-700 mb-1">
+                  Income Level
+                </label>
+                <select
+                  id="incomeLevel"
+                  name="incomeLevel"
+                  required
+                  value={userInfo.incomeLevel}
+                  onChange={handleUserInfoChange}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                >
+                  <option value="">Select income level</option>
+                  <option value="less-than-25k">Less than $25,000</option>
+                  <option value="25k-50k">$25,000 - $50,000</option>
+                  <option value="50k-75k">$50,000 - $75,000</option>
+                  <option value="75k-100k">$75,000 - $100,000</option>
+                  <option value="100k-150k">$100,000 - $150,000</option>
+                  <option value="150k-250k">$150,000 - $250,000</option>
+                  <option value="250k-plus">$250,000+</option>
+                </select>
+              </div>
+
+              <div>
+                <label htmlFor="workStatus" className="block text-sm font-medium text-gray-700 mb-1">
+                  Work Status
+                </label>
+                <select
+                  id="workStatus"
+                  name="workStatus"
+                  required
+                  value={userInfo.workStatus}
+                  onChange={handleUserInfoChange}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                >
+                  <option value="">Select work status</option>
+                  <option value="full-time">Full-Time</option>
+                  <option value="part-time">Part-Time</option>
+                  <option value="unemployed">Unemployed</option>
+                  <option value="student">Student</option>
+                  <option value="self-employed">Self-Employed</option>
+                </select>
+              </div>
+            </div>
+
+            <div className="flex items-center">
+              <input
+                type="checkbox"
+                id="isStudent"
+                name="isStudent"
+                checked={userInfo.isStudent}
+                onChange={handleUserInfoChange}
+                className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
+              />
+              <label htmlFor="isStudent" className="ml-2 block text-sm text-gray-700">
+                I am a student
+              </label>
+            </div>
+
+            <div className="text-center pt-4">
+              <button
+                type="button"
+                onClick={() => setCurrentStep('intro')}
+                disabled={!isStatsFormComplete()}
+                className={`px-8 py-4 font-medium rounded-lg shadow-md transform transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-opacity-50 ${
+                  isStatsFormComplete()
+                    ? 'bg-indigo-600 text-white hover:bg-indigo-700 hover:shadow-lg hover:-translate-y-0.5'
+                    : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                }`}
+              >
+                Continue to Assessment
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    );
+  }
   
   // Render intro screen
   if (currentStep === 'intro') {
@@ -213,21 +493,6 @@ export default function Questionnaire() {
           
           <form onSubmit={handleSubmit} className="space-y-6">
             <div>
-              <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">
-                Full Name
-              </label>
-              <input
-                type="text"
-                id="name"
-                name="name"
-                required
-                value={userInfo.name}
-                onChange={handleUserInfoChange}
-                className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
-              />
-            </div>
-            
-            <div>
               <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
                 Email Address
               </label>
@@ -236,9 +501,8 @@ export default function Questionnaire() {
                 id="email"
                 name="email"
                 required
-                value={userInfo.email}
-                onChange={handleUserInfoChange}
                 className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                placeholder="Enter your email address"
               />
             </div>
             
@@ -251,9 +515,8 @@ export default function Questionnaire() {
                 id="phone"
                 name="phone"
                 required
-                value={userInfo.phone}
-                onChange={handleUserInfoChange}
                 className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                placeholder="Enter your phone number"
               />
             </div>
             
