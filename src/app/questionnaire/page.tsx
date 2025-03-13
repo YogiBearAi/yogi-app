@@ -4,11 +4,36 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
 
-// Audio feedback system
-const audioFeedback = {
-  answerSelect: new Audio('/sounds/answer-select.mp3'),
-  sectionComplete: new Audio('/sounds/section-complete.mp3'),
-  finalReview: new Audio('/sounds/final-review.mp3')
+// Audio feedback system - moved to a custom hook
+const useAudioFeedback = () => {
+  const [audioFeedback, setAudioFeedback] = useState<{
+    answerSelect: HTMLAudioElement | null;
+    sectionComplete: HTMLAudioElement | null;
+    finalReview: HTMLAudioElement | null;
+  }>({
+    answerSelect: null,
+    sectionComplete: null,
+    finalReview: null
+  });
+
+  useEffect(() => {
+    // Initialize audio only on client side
+    setAudioFeedback({
+      answerSelect: new Audio('/sounds/answer-select.mp3'),
+      sectionComplete: new Audio('/sounds/section-complete.mp3'),
+      finalReview: new Audio('/sounds/final-review.mp3')
+    });
+  }, []);
+
+  const playSound = (type: 'answerSelect' | 'sectionComplete' | 'finalReview') => {
+    if (audioFeedback[type]) {
+      audioFeedback[type]?.play().catch(() => {
+        // Ignore errors if audio fails to play
+      });
+    }
+  };
+
+  return { playSound };
 };
 
 // Haptic feedback function
@@ -459,6 +484,7 @@ export default function Questionnaire() {
   const [currentSection, setCurrentSection] = useState<QuestionCategory>('Mental');
   const [responses, setResponses] = useState<UserResponse[]>([]);
   const [showTransition, setShowTransition] = useState(false);
+  const { playSound } = useAudioFeedback();
   const [userInfo, setUserInfo] = useState<UserInfo>({
     firstName: '',
     lastName: '',
@@ -541,9 +567,7 @@ export default function Questionnaire() {
   // Handle section completion
   const handleSectionComplete = () => {
     // Play section complete sound
-    audioFeedback.sectionComplete.play().catch(() => {
-      // Ignore errors if audio fails to play
-    });
+    playSound('sectionComplete');
     
     setShowTransition(true);
     setTimeout(() => {
@@ -560,9 +584,7 @@ export default function Questionnaire() {
         setCurrentStep('section-intro');
       } else {
         // Play final review sound when completing all sections
-        audioFeedback.finalReview.play().catch(() => {
-          // Ignore errors if audio fails to play
-        });
+        playSound('finalReview');
         setCurrentStep('completion');
       }
     }, 1000);
@@ -608,9 +630,7 @@ export default function Questionnaire() {
     const currentQuestion = questions[currentQuestionIndex];
     
     // Play audio feedback
-    audioFeedback.answerSelect.play().catch(() => {
-      // Ignore errors if audio fails to play
-    });
+    playSound('answerSelect');
     
     // Trigger haptic feedback
     triggerHapticFeedback();
