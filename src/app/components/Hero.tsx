@@ -72,11 +72,11 @@ export default function Hero() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, ease: "easeOut" }}
-          className="text-5xl md:text-7xl font-bold tracking-wider text-white mb-12 uppercase"
+          className="text-6xl md:text-8xl font-bold tracking-wider text-white mb-16 uppercase"
         >
-          We Help Lost Young Men
+          We Help Lost Men
           <br />
-          <span className="bg-gradient-to-r from-blue-400 to-indigo-500 text-transparent bg-clip-text">
+          <span className="bg-gradient-to-r from-blue-400 via-indigo-500 to-blue-600 text-transparent bg-clip-text px-4 rounded-xl">
             Find Meaning
           </span>
         </motion.h1>
@@ -85,7 +85,7 @@ export default function Hero() {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 0.8, delay: 0.4 }}
-          className="max-w-4xl mx-auto mb-16"
+          className="max-w-4xl mx-auto mb-20"
         >
           <p className="text-xl md:text-2xl italic font-serif text-gray-300 mb-4">
             "When we are no longer able to change a situation, we are challenged to change ourselves."
@@ -101,7 +101,7 @@ export default function Hero() {
         >
           <Link
             href="/questionnaire"
-            className="inline-block px-12 py-5 text-lg font-semibold text-white bg-gradient-to-r from-blue-600 to-indigo-600 rounded-lg shadow-lg hover:shadow-xl hover:-translate-y-0.5 transform transition-all duration-200 hover:from-blue-700 hover:to-indigo-700 active:scale-95"
+            className="inline-block px-16 py-6 text-xl font-semibold text-white bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-700 rounded-2xl shadow-lg hover:shadow-xl hover:-translate-y-0.5 transform transition-all duration-200 hover:from-blue-700 hover:to-indigo-800 active:scale-95"
           >
             Take the Assessment
           </Link>
