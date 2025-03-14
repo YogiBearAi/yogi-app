@@ -12,25 +12,13 @@ module.exports = {
         "gradient-conic": "conic-gradient(from 180deg at 50% 50%, var(--tw-gradient-stops))",
       },
       animation: {
-        'gradient-shift': 'gradient-shift 8s ease infinite',
-        'pulse': 'pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+        'gradient-slow': 'gradient 15s ease infinite',
       },
       keyframes: {
-        'gradient-shift': {
-          '0%, 100%': {
-            'background-position': '0% 50%',
-          },
-          '50%': {
-            'background-position': '100% 50%',
-          },
-        },
-        'pulse': {
-          '0%, 100%': {
-            opacity: '1',
-          },
-          '50%': {
-            opacity: '.8',
-          },
+        gradient: {
+          '0%': { backgroundPosition: '0% 50%' },
+          '50%': { backgroundPosition: '100% 50%' },
+          '100%': { backgroundPosition: '0% 50%' },
         },
       },
     },
